@@ -1,6 +1,6 @@
 import os
 from typing import List
-
+from PyPDF2 import PdfReader
 
 class TextFileLoader:
     def __init__(self, path: str, encoding: str = "utf-8"):
@@ -36,6 +36,45 @@ class TextFileLoader:
         return self.documents
 
 
+class PdfFileLoader:
+    def __init__(self, path: str):
+        self.documents = []
+        self.path = path
+
+
+    def load(self):
+        if os.path.isdir(self.path):
+            self.load_directory()
+        elif os.path.isfile(self.path) and self.path.endswith(".pdf"):
+            self.load_file()
+        else:
+            raise ValueError(
+                "Provided path is neither a valid directory nor a .pdf file."
+            )
+
+    def load_file(self):
+        # Use PyPDF2 to extract text from the PDF
+        reader = PdfReader(self.path)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        self.documents.append(text)
+
+    def load_directory(self):
+        for root, _, files in os.walk(self.path):
+            for file in files:
+                if file.endswith(".pdf"):
+                    file_path = os.path.join(root, file)
+                    reader = PdfReader(file_path)
+                    text = ""
+                    for page in reader.pages:
+                        text += page.extract_text()
+                    self.documents.append(text)
+
+    def load_documents(self):
+        self.load()
+        return self.documents
+
 class CharacterTextSplitter:
     def __init__(
         self,
@@ -50,6 +89,7 @@ class CharacterTextSplitter:
         self.chunk_overlap = chunk_overlap
 
     def split(self, text: str) -> List[str]:
+        text = text.replace("\n", " ").strip()
         chunks = []
         for i in range(0, len(text), self.chunk_size - self.chunk_overlap):
             chunks.append(text[i : i + self.chunk_size])
@@ -63,7 +103,7 @@ class CharacterTextSplitter:
 
 
 if __name__ == "__main__":
-    loader = TextFileLoader("data/KingLear.txt")
+    loader = PdfFileLoader("data/PMarcaBlogsxxx.pdf")
     loader.load()
     splitter = CharacterTextSplitter()
     chunks = splitter.split_texts(loader.documents)
