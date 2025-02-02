@@ -95,11 +95,11 @@ def get_user_template(task_type, user_input):
 async def start_chat():
     settings = {
         "model": "gpt-3.5-turbo",
-        "temperature": 0.7,
+        "temperature": 0,
         "max_tokens": 500,
         "top_p": 1,
         "frequency_penalty": 0,
-        "presence_penalty": 0.5,
+        "presence_penalty": 0,
     }
 
     cl.user_session.set("settings", settings)
